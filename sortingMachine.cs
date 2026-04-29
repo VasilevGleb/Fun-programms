@@ -3,18 +3,43 @@
 
 class Program
 {
-    public static void ReversePallets(string[] pallets)
+    static void ClearPallets(string[] pallets)
+    {
+        TypeText("How many pallets do you want to clear? (0-" + pallets.Length + ")");
+        int count = int.Parse(Console.ReadLine());
+
+        if (count >= 0 && count <= pallets.Length)
+        {
+            Array.Clear(pallets, 0, count);
+            foreach (string pallet in pallets)
+            {
+                Console.WriteLine($"--{pallet}");
+            }
+        }
+        else
+        {
+            TypeText("Invalid input. Please enter a number between 0 and " + pallets.Length + ".");
+        }
+
+    }
+    static void ReversePallets(string[] pallets)
     {
         Array.Reverse(pallets);
+        foreach (string pallet in pallets)
+        {
+            Console.WriteLine($"--{pallet}");
+        }
         TypeText("Pallets reversed!");
-        TypeText($" {string.Join(", ", pallets)}");
     }
 
     public static void SortingPallets(string[] pallets)
     {
         Array.Sort(pallets);
+        foreach (string pallet in pallets)
+        {
+            Console.WriteLine($"--{pallet}");
+        }
         TypeText("Pallets sorted!");
-        TypeText($" {string.Join(", ", pallets)}");
     }
     static void TypeText(string text)
     {
@@ -48,10 +73,11 @@ class Program
                 Console.WriteLine("1. The pallets are already sorted!");
             }
             Console.WriteLine("2. Reverse the pallets");
-            Console.WriteLine("3. Say how do you much love pallets");
-            Console.WriteLine("4. Do nothing");
-            Console.WriteLine("5. Make me a coffee");
-            Console.WriteLine("6. Exit");
+            Console.WriteLine("3. Clear some pallets");
+            Console.WriteLine("4. Say how do you much love pallets");
+            Console.WriteLine("5. Do nothing");
+            Console.WriteLine("6. Make me a coffee");
+            Console.WriteLine("7. Exit");
 
 
             switch (Console.ReadLine())
@@ -62,7 +88,6 @@ class Program
                     {
                         SortingPallets(pallets);
                         isSorted = true;
-                        TypeText("Pallets sorted successfully!");
                         break;
                     }
                     else { Console.WriteLine("The pallets are already sorted!"); }
@@ -74,6 +99,10 @@ class Program
                     break;
 
                 case "3":
+                    ClearPallets(pallets);
+                    break;
+
+                case "4":
                     TypeText("I love pallets so much! They are the best!");
                     TypeText("How about you? Do you love pallets? (y/n)");
                     string? loveAnswer = Console.ReadLine();
@@ -84,7 +113,7 @@ class Program
                     }
                     else if (loveAnswer?.ToLower() == "n")
                     {
-                        TypeText("Invalid input. Self-destructing...");
+                        TypeText("Invalid input. Self-destruction protocol activated!");
                         Console.WriteLine("");
                         TypeText("...3");
                         Console.WriteLine("");
@@ -98,17 +127,17 @@ class Program
                     break;
 
 
-                case "4":
+                case "5":
                     TypeText("Okay, doing nothing...");
                     break;
 
-                case "5":
+                case "6":
                     TypeText("Making coffee...");
                     Thread.Sleep(2000);
                     TypeText("Hahaha, was a joke! I`m sorting program.");
                     break;
 
-                case "6":
+                case "7":
                     TypeText("Exiting...");
                     isRunning = false;
                     break;
