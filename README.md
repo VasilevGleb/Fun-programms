@@ -9,3 +9,7 @@
 Make randome Product list
 Calculate Sum
 Can loock about same broducts in your basket & list
+
+## Bank Account
+You can set how much money you want to Save Up
+You can Deposite and Withdraw money 
