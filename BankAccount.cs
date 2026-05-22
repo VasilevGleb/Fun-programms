@@ -1,218 +1,229 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.IO;
+using System.Security.Cryptography;
+using System.Globalization;
+using System.Threading;
+
+static class UI
+{
+    public static void TypeText(string text)
+    {
+        foreach (char c in text)
+        {
+            Console.Write(c);
+            Thread.Sleep(30);
+        }
+        Console.WriteLine();
+    }
+}
+
+static class MD5Hasher
+{
+    public static string Hash(string password)
+    {
+        using MD5 md5 = MD5.Create();
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
+        byte[] hash = md5.ComputeHash(bytes);
+        return Convert.ToHexString(hash);
+    }
+}
+
 class User
 {
     public string Name { get; set; }
     public string Password { get; set; }
-    public double Balance { get; set; }
-    public double toSaveUp { get; set; }
+    public decimal Balance { get; set; }
+    public decimal SavingsGoal { get; set; }
+    //public decimal CreditDebt { get; set; }
+    public bool HasAccount = false;
     public bool IsLogged = false;
 
-    public bool SaveUp = false;
-
-    public bool HasAccount = false;
+    const string FILE = "save.txt";
 
     public void Save()
     {
-        File.WriteAllText("save.txt", Name + "|" + Password + "|" + Balance + "|" + toSaveUp);
+        File.WriteAllText(FILE,
+            Name + "|" +
+            Password + "|" +
+            Balance.ToString(CultureInfo.InvariantCulture) + "|" +
+            SavingsGoal.ToString(CultureInfo.InvariantCulture) + "|");
     }
+
     public void Load()
     {
-        if (File.Exists("save.txt"))
-        {
-            string[] data = File.ReadAllText("save.txt").Split('|');
-            Name = data[0];
-            Password = data[1];
-            Balance = double.Parse(data[2]);
-            toSaveUp = double.Parse(data[3]);
-            if (toSaveUp > 0) SaveUp = true;
-            HasAccount = true;
-        }
+        if (!File.Exists(FILE)) return;
+        string[] data = File.ReadAllText(FILE).Split('|');
+        if (data.Length < 5) { File.Delete(FILE); return; }
+        Name = data[0];
+        Password = data[1];
+        Balance = decimal.Parse(data[2], CultureInfo.InvariantCulture);
+        SavingsGoal = decimal.Parse(data[3], CultureInfo.InvariantCulture);
+        //CreditDebt = decimal.Parse(data[4], CultureInfo.InvariantCulture);
+        HasAccount = true;
     }
-    public void CreateAccount()
+
+    public void Create()
     {
-        Console.WriteLine("Enter your name:");
+        UI.TypeText("Enter your name:");
         Name = Console.ReadLine();
-        Console.WriteLine("Enter your password:");
-        Password = Console.ReadLine();
-        Console.WriteLine("Enter your balance in €:");
-        Balance = double.Parse(Console.ReadLine());
+
+        UI.TypeText("Enter your password:");
+        Password = MD5Hasher.Hash(Console.ReadLine());
+
+        UI.TypeText("Enter your current balance (€):");
+        Balance = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+
         HasAccount = true;
         IsLogged = true;
         Save();
+        UI.TypeText("Account created! Welcome, " + Name + "!");
     }
 
     public void LogIn()
     {
         while (true)
         {
-            Console.WriteLine("Enter your password:");
-            string inputPassword = Console.ReadLine();
-            if (inputPassword == Password)
+            UI.TypeText("Enter your password:");
+            string input = Console.ReadLine();
+            if (MD5Hasher.Hash(input) == Password)
             {
-                Console.WriteLine("Login successful!");
                 IsLogged = true;
+                UI.TypeText("Welcome back, " + Name + "!");
                 return;
             }
-            else
-            {
-                Console.WriteLine("Incorrect password. Please try again.");
-
-            }
-
+            UI.TypeText("Incorrect password. Try again.");
         }
     }
-    public double Deposit(double amount)
-    {
-        Balance += amount;
 
-        Console.WriteLine("Your new balance is: " + Balance + "€");
-        return Balance;
-    }
-    public double Withdraw(double amount)
+    public void ChangePassword()
     {
-        Balance -= amount;
-        Console.WriteLine("Your new balance is: " + Balance + "€");
-        return Balance;
+        UI.TypeText("Enter your current password:");
+        if (MD5Hasher.Hash(Console.ReadLine()) != Password)
+        {
+            UI.TypeText("Incorrect password.");
+            return;
+        }
+        UI.TypeText("Enter new password:");
+        Password = MD5Hasher.Hash(Console.ReadLine());
+        Save();
+        UI.TypeText("Password changed successfully!");
     }
-
 }
 
 class BankProgram
 {
-    User User = new User();
+    User user = new User();
 
     public void Run()
     {
-        User.Load();
-        Welcome();
-        while (User.IsLogged)
-        {
-            ShowMenu();
-        }
-        Console.WriteLine("Thank you for using the Bank Program. Goodbye!");
-    }
-    public void MenuNav()
-    {
+        user.Load();
+        if (!user.HasAccount) user.Create();
+        else user.LogIn();
 
-        if (!int.TryParse(Console.ReadLine(), out int choice))
-        {
-            Console.WriteLine("Invalid input. Please enter a number.");
-            return;
-        }
-        switch (choice)
-        {
-            case 1:
-                Console.WriteLine("");
-                Thread.Sleep(500);
-                Console.WriteLine("Your current balance is: " + User.Balance + "€");
-                break;
-            case 2:
-                Console.WriteLine("");
-                Console.WriteLine("Enter the amount you want to deposit:");
-                double depositAmount = double.Parse(Console.ReadLine());
-                User.Deposit(depositAmount);
-                User.Save();
-                break;
-            case 3:
-                Console.WriteLine("");
-                Console.WriteLine("Enter the amount you want to withdraw:");
-                double withdrawAmount = double.Parse(Console.ReadLine());
-                User.Withdraw(withdrawAmount);
-                User.Save();
-                break;
-            case 4:
-                Console.WriteLine("");
-                if (!User.SaveUp)
-                {
-                    User.SaveUp = true;
-                    Console.WriteLine("How much do you want to save up?");
-                    double saveUpAmount = double.Parse(Console.ReadLine());
-                    User.toSaveUp = saveUpAmount;
-                    User.Save();
-                }
-                else
-                {
-                    Console.WriteLine("You want to save up " + User.toSaveUp + "€.");
-                    Console.WriteLine("Now you need to save up " + (User.toSaveUp - User.Balance) + "€ more.");
-                    Console.WriteLine("");
-                    Console.WriteLine("Do you want to change your saving goal? (y/n)");
+        while (user.IsLogged) ShowMenu();
 
-                    string input = Console.ReadLine();
-                    if (input.ToLower() == "y")
-                    {
-                        Console.WriteLine("How much do you want to save up?");
-                        double saveUpAmount = double.Parse(Console.ReadLine());
-                        User.toSaveUp = saveUpAmount;
-                        User.Save();
-                    }
-                    else if (input.ToLower() == "n")
-                    {
-                        Console.WriteLine("Okay, keep saving up!");
-                    }
-
-                    if (User.Balance >= User.toSaveUp)
-                    {
-                        Console.WriteLine("Congratulations! You have saved up " + User.toSaveUp + "€.");
-                        User.SaveUp = false;
-                        User.toSaveUp = 0;
-                        User.Save();
-                    }
-                }
-
-                break;
-
-            case 5:
-                Console.WriteLine("");
-                Console.WriteLine("Logging out...");
-                User.IsLogged = false;
-                break;
-            default:
-                Console.WriteLine("Invalid choice. Please try again.");
-                break;
-        }
+        UI.TypeText("Thank you for using the Bank. Goodbye!");
     }
 
-    public void ShowMenu()
+    void ShowMenu()
     {
-        Console.WriteLine("");
+        Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("\tMenu:");
-        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("  MENU");
+        Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("[1] Check Balance");
         Console.WriteLine("[2] Deposit");
         Console.WriteLine("[3] Withdraw");
-        Console.WriteLine("[4] Save Up");
-        Console.WriteLine("[5] Log Out");
-        Console.WriteLine("");
-        Console.ForegroundColor = ConsoleColor.White;
-        MenuNav();
-    }
-    public void Welcome()
-    {
+        Console.WriteLine("[4] " + (user.SavingsGoal > 0 ? "Check Savings Goal" : "Set Savings Goal"));
+        Console.WriteLine("[5] Exchange (calculate % of amount)");
+        Console.WriteLine("[6] Settings");
+        Console.WriteLine("[7] Log Out");
+        Console.WriteLine();
 
-        if (!User.IsLogged)
+        if (!int.TryParse(Console.ReadLine(), out int choice))
         {
-            Console.WriteLine("Welcome to the Bank Program!");
-            Console.WriteLine("Please log in or enter password to continue.");
-            Thread.Sleep(1000);
-            if (User.HasAccount) User.LogIn();
-            else
-            {
-                Console.WriteLine("No account found. Please create an account.");
-                User.CreateAccount();
-
-            }
+            UI.TypeText("Invalid input.");
+            return;
         }
-        else
+
+        Console.WriteLine();
+
+        switch (choice)
         {
-            Console.WriteLine("Welcome back, " + User.Name + "!");
-            ShowMenu();
+            case 1:
+                UI.TypeText($"Balance: {user.Balance:F2}€");
+
+                break;
+
+            case 2:
+                UI.TypeText("Amount to deposit:");
+                decimal dep = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+                user.Balance += dep;
+                user.Save();
+                UI.TypeText($"New balance: {user.Balance:F2}€");
+                break;
+
+            case 3:
+                UI.TypeText("Amount to withdraw:");
+                decimal wit = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+
+                user.Balance -= wit;
+                UI.TypeText($"New balance: {user.Balance:F2}€");
+
+                user.Save();
+                break;
+
+            case 4:
+                if (user.SavingsGoal > 0)
+                {
+                    decimal remaining = user.SavingsGoal - user.Balance;
+                    decimal pct = (user.Balance / user.SavingsGoal) * 100;
+                    UI.TypeText($"Goal: {user.SavingsGoal:F2}€");
+                    UI.TypeText($"Progress: {pct:F1}%");
+                    UI.TypeText($"Remaining: {(remaining > 0 ? remaining.ToString("F2") : "0.00")}€");
+                    if (user.Balance >= user.SavingsGoal)
+                        UI.TypeText("Congratulations! Goal reached!");
+                    Console.WriteLine();
+                    UI.TypeText("Change goal? (y/n)");
+                    if (Console.ReadLine()?.ToLower() == "y")
+                    {
+                        UI.TypeText("New goal (€):");
+                        user.SavingsGoal = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+                        user.Save();
+                    }
+                }
+                else
+                {
+                    UI.TypeText("Savings goal (€):");
+                    user.SavingsGoal = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+                    user.Save();
+                    UI.TypeText($"Goal set: {user.SavingsGoal:F2}€");
+                }
+                break;
+
+            case 5:
+                UI.TypeText("Amount:");
+                decimal amt = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+                UI.TypeText("Percentage to receive (e.g. 90 = you get 90%):");
+                decimal pctEx = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+                decimal minus = amt * (pctEx / 100);
+                decimal result = amt - minus;
+                UI.TypeText($"You will receive: {result:F2}€");
+                break;
+
+            case 6:
+                Console.WriteLine("[1] Change password");
+                Console.WriteLine("[2] Back");
+                if (Console.ReadLine() == "1") user.ChangePassword();
+                break;
+
+            case 7:
+                user.IsLogged = false;
+                break;
+
+            default:
+                UI.TypeText("Invalid choice.");
+                break;
         }
     }
 }
@@ -221,7 +232,6 @@ class Program
 {
     static void Main()
     {
-        BankProgram bankProgram = new BankProgram();
-        bankProgram.Run();
+        new BankProgram().Run();
     }
 }
