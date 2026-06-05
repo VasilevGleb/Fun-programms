@@ -1,184 +1,238 @@
-//TypeText("Hello World");
+using System;
+using System.Threading;
+using System.Text;
 
-class Program
+
+public class Program
 {
-    public static void SelfDestructingProtocol()
+    static Dictionary<string, List<string>> list = new Dictionary<string, List<string>>()
     {
-        TypeText("Invalid input. Self-destruction protocol activated!");
-        Console.WriteLine("");
-        TypeText("...3");
-        Console.WriteLine("");
-        TypeText("...2");
-        Console.WriteLine("");
-        TypeText("...1");
-        Console.WriteLine("");
-        Console.WriteLine("Boom!");
-        System.Environment.Exit(0);
-    }
-    static void AddPallets(string[] pallets)
+        {"Хлеб", new List<string>() {"[G526]", "[L464]", "[B334]"}}
+
+        ,{"Молоко", new List<string>() {"[M999]", "[L725]", "[N464]"}}
+
+        ,{"Сыр", new List<string>() {"[S112]", "[C972]", "[P196]"}}
+
+        ,{"Чипсы", new List<string>() {"[H373]"}}
+
+        ,{"Яйца", new List<string>() {"[R553]", "[F228]"}}
+
+        ,{"Колбаса", new List<string>() {"[D014]", "[E666]", "[U088]"}}
+
+    };
+
+    public static void AddPallets()
     {
-        int count = int.Parse(Console.ReadLine());
-        if (count < 0 || !int.TryParse(Console.ReadLine(), out count))
+        Console.Write("Введите имя продукта:\n");
+        string productName = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(productName)) return;
+        productName = productName.Trim();
+        productName = char.ToUpper(productName[0]) + productName.Substring(1).ToLower();
+
+        if (!list.ContainsKey(productName))
         {
-            TypeText("Invalid input. Please enter a non-negative number.");
+            Console.WriteLine("Продукт не найден.");
             return;
         }
-        else
+
+        Console.Write("Введите номер паллеты для добавления:\n");
+        string palletNumber = Console.ReadLine();
+
+        // 1. Проверка длины — если больше 5, вывести сообщение и return
+        if (palletNumber.Length < 5)
         {
-            Array.Resize(ref pallets, pallets.Length + count);
-            TypeText($"Added {count} pallets. Total pallets: {pallets.Length}");
-            Console.WriteLine("");
-            TypeText("Current pallets:");
-            foreach (string pallet in pallets)
+            Console.WriteLine("Номер паллеты должен быть ровно 5 символов.");
+            return;
+        }
+
+        // 2. foreach по list.Keys — проверить дубли во всех продуктах
+        //    если нашёл — вывести сообщение и return
+        foreach (string product in list.Keys)
+        {
+            if (list[product].Contains(palletNumber))
+            {
+                Console.WriteLine("Паллета с таким номером уже существует.");
+                return;
+            }
+        }
+
+        // 3. Если дошли сюда — всё чисто
+        list[productName].Add(palletNumber);
+        //    Вывести сообщение об успехе
+        Console.WriteLine($"\nПаллета {palletNumber} добавлена.");
+    }
+    public static void RemovePallets()
+    {
+        bool found = false;
+        foreach (string product in list.Keys)
+        {
+            Console.WriteLine($"Продукт: {product}");
+            foreach (string pallet in list[product])
+            {
+                Console.WriteLine($"--{pallet}");
+            }
+        }
+
+        Console.WriteLine("Введите номер паллеты для удаления:\n");
+        string palletNumber = Console.ReadLine().ToLower();
+        foreach (string pallet in list.Keys)
+        {
+            if (list[pallet].Contains(palletNumber))
+            {
+                found = true;
+                list[pallet].Remove(palletNumber);
+                Console.WriteLine("Паллета удалена.");
+                return;
+            }
+        }
+        if (!found)
+        {
+            Console.WriteLine("Паллета не найдена.");
+        }
+    }
+
+    static void ShowPallets()
+    {
+        foreach (string product in list.Keys)
+        {
+            Console.WriteLine($"Продукт: {product}");
+            foreach (string pallet in list[product])
             {
                 Console.WriteLine($"--{pallet}");
             }
         }
     }
-    static void ClearPallets(string[] pallets)
-    {
-        TypeText("How many pallets do you want to clear? (0-" + pallets.Length + ")");
-        int count = int.Parse(Console.ReadLine());
 
-        if (count >= 0 && count <= pallets.Length)
+    static void HowMuchDoYouLovePallets()
+    {
+        Console.WriteLine("Паллеты - это основа нашего склада. Они поддерживают порядок и эффективность в нашей работе.");
+        Console.WriteLine("Так что я, робот-сортировщик, их просто обожаю!!!\n");
+
+        Console.WriteLine("А на сколько сильно любите паллеты вы? (0-10)\n");
+        int loveLevel = int.Parse(Console.ReadLine());
+        if (loveLevel >= 4)
         {
-            Array.Clear(pallets, 0, count);
-            foreach (string pallet in pallets)
-            {
-                Console.WriteLine($"--{pallet}");
-            }
+            Console.WriteLine($"Вы любите паллеты на уровне {loveLevel} из 10.");
         }
-        else if (count == 0)
+        else if (loveLevel <= 3)
         {
-            Thread.Sleep(500);
-            TypeText("No pallets cleared. Current pallets:");
-            Console.WriteLine($"--{string.Join(", --", pallets)}");
+            Console.WriteLine($"Вы любите паллеты на уровне {loveLevel} из 10. Это не так много, но я уважаю ваш выбор.");
+        }
+        else if (loveLevel == 0)
+        {
+            Console.WriteLine("Вы не любите паллеты вообще?! Это печально.");
+            Thread.Sleep(1000);
+            Console.WriteLine("Инициирую протокол самоуничтожения...");
+            Thread.Sleep(1000);
+            SelfDestruction();
         }
         else
         {
-            TypeText("Invalid input. Please enter a number between 0 and " + pallets.Length + ".");
+            Console.WriteLine("Пожалуйста, введите число от 0 до 10.");
         }
-
     }
-    static void ReversePallets(string[] pallets)
+
+    static void MakeMeACoffee()
     {
-        Thread.Sleep(2000);
-        Array.Reverse(pallets);
-        foreach (string pallet in pallets)
+        int suggar = 0;
+        int milk = 0;
+        Console.WriteLine("Сколько сахара вы хотите в кофе?");
+        Console.WriteLine("(0/10)");
+        suggar = int.Parse(Console.ReadLine());
+        if (suggar >= 5)
         {
-            Console.WriteLine($"--{pallet}");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Ебать ты жирный!!!");
+            Console.ResetColor();
         }
-        TypeText("Pallets reversed!");
-    }
+        Console.WriteLine("Cколько молока вы хотите в кофе?");
+        Console.WriteLine("(0/5)");
+        milk = int.Parse(Console.ReadLine());
+        if (milk < 3)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Кончилось молоко!");
+            Console.ResetColor();
+        }
+        int c = 0;
+        while (c != 4)
+        {
+            Console.Write(".");
+            Thread.Sleep(300);
+            c++;
+        }
+        Console.WriteLine("\nТы издеваешься?!\n Я робот-сортировщик, а не кофеварка!!!");
 
-    public static void SortingPallets(string[] pallets)
+    }
+    static void SelfDestruction()
     {
-        Array.Sort(pallets);
-        Thread.Sleep(2000);
-        foreach (string pallet in pallets)
-        {
-            Console.WriteLine($"--{pallet}");
-        }
-        TypeText("Pallets sorted!");
+        Thread.Sleep(300);
+        Console.WriteLine("");
+        Console.WriteLine("...3");
+        Thread.Sleep(300);
+        Console.WriteLine("");
+        Console.WriteLine("...2");
+        Thread.Sleep(300);
+        Console.WriteLine("");
+        Console.WriteLine("...1");
+        Thread.Sleep(300);
+        Console.WriteLine("");
+        Console.WriteLine("Boom!");
+        Console.WriteLine("");
+        Thread.Sleep(300);
+        System.Environment.Exit(0);
     }
-    static void TypeText(string text)
+
+    public static void Menu()
     {
-        int delay = 100;
-        foreach (char c in text)
+
+        Console.WriteLine("1. Show pallets");
+        Console.WriteLine("2. Add pallets");
+        Console.WriteLine("3. Remove some pallets");
+        Console.WriteLine("4. How much do you love pallets");
+
+        Console.WriteLine("5. Make me a coffee");
+        Console.WriteLine("6. Exit\n");
+
+        Console.WriteLine("Пожалуйста, введите номер действия:\n");
+        int choice = int.TryParse(Console.ReadLine(), out choice) ? choice : 0;
+        switch (choice)
         {
-            Console.Write(c);
-            Thread.Sleep(delay);
+            case 1:
+                ShowPallets();
+                break;
+            case 2:
+                AddPallets();
+                break;
+            case 3:
+                RemovePallets();
+                break;
+            case 4:
+                HowMuchDoYouLovePallets();
+                break;
+            case 5:
+                MakeMeACoffee();
+                break;
+            case 6:
+                Thread.Sleep(500);
+                Console.WriteLine("До свидания!");
+                Environment.Exit(0);
+                break;
+            default:
+                Console.WriteLine("Неверный номер действия.");
+                break;
         }
-        Console.WriteLine();
     }
-    static void Main(string[] args)
+
+
+    public static void Main(string[] args)
     {
-        // List<string> palletList = new List<string> { "B12", "A11", "C13", "8813", "D14", "A10", "B11", "C12", "D13", "A9" };
-        string[] pallets = ["B12", "A11", "C13", "8813", "D14", "A10", "B11", "C12", "D13", "A9"];
-        bool isRunning = true;
-        bool isSorted = false;
-
-        while (isRunning)
+        while (true)
         {
-
-            Console.WriteLine();
-            TypeText("What should I do?");
-            TypeText("  ");
-            if (!isSorted)
-            {
-                Console.WriteLine("1. Sort the pallets");
-            }
-            else
-            {
-                Console.WriteLine("1. The pallets are already sorted!");
-            }
-            Console.WriteLine("2. Reverse the pallets");
-            Console.WriteLine("3. Clear some pallets");
-            Console.WriteLine("4. How much do you love pallets");
-            Console.WriteLine("5. Add more pallets");
-            Console.WriteLine("6. Make me a coffee");
-            Console.WriteLine("7. Exit");
-
-
-            switch (Console.ReadLine())
-            {
-
-                case "1":
-                    if (!isSorted)
-                    {
-                        SortingPallets(pallets);
-                        isSorted = true;
-                        break;
-                    }
-                    else { Console.WriteLine("The pallets are already sorted!"); }
-                    break;
-
-                case "2":
-                    ReversePallets(pallets);
-                    isSorted = false;
-                    break;
-
-                case "3":
-                    ClearPallets(pallets);
-                    break;
-
-                case "4":
-                    TypeText("I love pallets so much! They are the best!");
-                    TypeText("How about you? Do you love pallets? (y/n)");
-                    string? loveAnswer = Console.ReadLine();
-                    if (loveAnswer?.ToLower() == "y")
-                    {
-                        TypeText("That's great! I'm glad you love pallets too!");
-                        break;
-                    }
-                    else if (loveAnswer?.ToLower() == "n")
-                    {
-                        SelfDestructingProtocol();
-                    }
-                    break;
-
-
-                case "5":
-                    TypeText("Okay, adding more pallets...");
-                    TypeText("Please enter the number of pallets you want to add:");
-                    Thread.Sleep(2000);
-                    AddPallets(pallets);
-                    break;
-
-                case "6":
-                    TypeText("Making coffee...");
-                    Thread.Sleep(2000);
-                    Console.WriteLine("");
-                    TypeText("Hahaha, was a joke! I`m sorting program.");
-                    break;
-
-                case "7":
-                    TypeText("Exiting...");
-                    isRunning = false;
-                    break;
-            }
-
+            Menu();
         }
-
     }
+
 }
+
