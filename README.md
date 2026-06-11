@@ -20,4 +20,4 @@
 -- Progrsm can remeber user (but need password)
 
 ## NoEscape:
-Is a CyclosProgram that don't leave you go before you didn't wrote the right symbols
+Is a CyclosProgram that don't leave you go before you didn't wrote right symbols
