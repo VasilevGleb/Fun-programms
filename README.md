@@ -20,4 +20,6 @@
 -- Progrsm can remeber user (but need password)
 
 ## NoEscape:
-Is a CyclosProgram that don't leave you go before you didn't wrote right symbols
+Is a Cycle-Program that don't leave you before you didn't wrote right password
+## NoEscape.exe:
+End(?) version of NoEscape. Now you can't leve with Ctrl+C. (I'll make some later that you also can't leave with Alt+F4)
